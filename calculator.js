@@ -6,13 +6,17 @@
     this.rpnString = ''
     this.postEquals = ''
     this.numberStack = []
-    this.display = ''
+    this.display = 0
     this.newNumber = true
     this.prevOperator = null
     this.prevNumber = null
     this.inputHandler = this.inputHandler.bind( this )
+    this.clickHandler = this.clickHandler.bind( this )
+    this.keyHandler = this.keyHandler.bind( this )
     this.addListener()
   }
+
+  Calculator.MAX_DISPLAY_LENGTH = 11
 
   Calculator.operators = {
     '+': 2,
@@ -115,6 +119,16 @@
         this.prevNumber = null
       }
 
+      else if ( input === 'toggle' ) {
+        if ( this.display.indexOf( '-' ) === -1 ) {
+          this.display = '-' + this.display
+          this.setDisplay()
+        } else {
+          this.display = this.display.substring( 1 )
+          this.setDisplay()
+        }
+      }
+
       else {
         if ( this.newNumber ) {
           this.display = input
@@ -193,17 +207,18 @@
 
     handleLowerOperator: function( input ) {
       this.prevOperator = input
-      this.prevNumber = this.display
+      this.prevNumber = ( this.display.indexOf( '-' ) === -1 )
+        ? this.display
+        : '|' + this.display.substring( 1 )
 
       if ( !Calculator.postfixHasOperator( this.postfix ) ) {
-        this.postfix = this.display + this.prevOperator
+        this.postfix = this.prevNumber + this.prevOperator
       } else {
-        this.postfix += this.display
         this.convertToRPN( this.postfix )
         this.evalRPN()
-        this.display = this.numberStack.pop()
+        this.prevNumber = this.numberStack.pop()
         this.setDisplay()
-        this.postfix = this.display + this.prevOperator
+        this.postfix = this.prevNumber + this.prevOperator
         this.rpnString = ''
       }
       this.newNumber = true
@@ -227,6 +242,16 @@
     },
 
     keyHandler: function( event ) {
+      var button = event.key
+      if (
+        parseInt( button ) ||
+        button === '0' ||
+        Calculator.isOperator( button ) ||
+        Calculator.isEquals( button )
+      )
+         {
+        this.inputHandler( button )
+      }
     },
 
   }
